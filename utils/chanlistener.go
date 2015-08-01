@@ -1,8 +1,18 @@
 package utils
 
 import (
-	"errors"
 	"net"
+)
+
+type errListenerClosed string
+
+func (e errListenerClosed) Error() string   { return string(e) }
+func (e errListenerClosed) Temporary() bool { return false }
+func (e errListenerClosed) Timeout() bool   { return false }
+
+var (
+	// ErrListenerClosed
+	ErrListenerClosed = errListenerClosed("real listener closed")
 )
 
 // ChannelListener simulates a net.Listener, with Accept simply waiting on a
@@ -19,7 +29,7 @@ type ChannelListener struct {
 func (c *ChannelListener) Accept() (conn net.Conn, err error) {
 	x, ok := <-c.input
 	if !ok {
-		return nil, errors.New("No more clients!")
+		return nil, ErrListenerClosed
 	}
 	return x, nil
 }
